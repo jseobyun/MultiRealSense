@@ -3,4 +3,4 @@
 *.npy
 *.npz
 *.zip
-
+__pycache__
