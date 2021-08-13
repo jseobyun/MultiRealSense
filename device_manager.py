@@ -70,9 +70,9 @@ class DeviceManager:
         product_line = device_info[1]
 
         if product_line == "L500":
-            # Enable L515 device
             self.L500_config.enable_device(device_serial)
             pipeline_profile = pipeline.start(self.L500_config)
+            print("Enable L515 device")
         else:
             # Enable D400 device
             self.D400_config.enable_device(device_serial)
@@ -113,15 +113,17 @@ class DeviceManager:
                 frameset = device.pipeline.poll_for_frames()
 
                 if frameset.size() == len(streams):
-                    dev_info = (serial, device.product_line)
+                    dev_info = (cam_idx, device.product_line)
                     frames[dev_info] = {}
                     for stream in streams:
                         if (rs.stream.infrared == stream.stream_type()):
                             frame = frameset.get_infrared_frame(stream.stream_index())
-                            key_ = (stream.stream_type(), stream.stream_index())
+                            #key_ = (stream.stream_type(), stream.stream_index())
+                            key_ = str(stream.stream_type())
                         else:
                             frame = frameset.first_or_default(stream.stream_type())
-                            key_ = stream.stream_type()
+                            key_ = str(stream.stream_type())
+
                         frames[dev_info][key_] = frame
 
                     aligned_frames = align.process(frameset)
@@ -164,7 +166,17 @@ class DeviceManager:
             serial = dev_info[0]
             device_intrinsics[serial] = {}
             for key, value in frameset.items():
-                device_intrinsics[serial][key] = value.get_profile().as_video_stream_profile().get_intrinsics()
+                intrinsic_obj = value.get_profile().as_video_stream_profile().get_intrinsics()
+                intrinsic_dict = {
+                    'coeffs': intrinsic_obj.coeffs,
+                    'fx' : intrinsic_obj.fx,
+                    'fy' : intrinsic_obj.fy,
+                    'height' : intrinsic_obj.height,
+                    'width' : intrinsic_obj.width,
+                    'cx' : intrinsic_obj.ppx,
+                    'cy' : intrinsic_obj.ppy,
+                }
+                device_intrinsics[serial][key] = intrinsic_dict
         print(device_intrinsics)
         return device_intrinsics
 

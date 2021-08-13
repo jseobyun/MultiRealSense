@@ -1,6 +1,7 @@
 import pyrealsense2 as rs
 import cv2
 import os
+import json
 import numpy as np
 import time
 import argparse
@@ -16,12 +17,13 @@ def parse_config():
 
 def capture(root):
     # Define some constants
+    save_intrinsic = True
     L515_resolution_width = 1024  # pixels
     L515_resolution_height = 768  # pixels
     L515_frame_rate = 30
 
-    resolution_width = 1024  # 1280 # pixels
-    resolution_height = 768  # 720 # pixels
+    resolution_width = 1280  # 1280 # pixels
+    resolution_height = 720  # 720 # pixels
     frame_rate = 30  # fps
 
     dispose_frames_for_stablisation = 30  # frames
@@ -46,11 +48,19 @@ def capture(root):
         start = time.time()
         for _ in range(300):
             frames = device_manager.get_frames(root, save=False, no_count=True)
+            if save_intrinsic:
+                intrinsic = device_manager.get_device_intrinsics(frames)
+                with open(os.path.join(root, 'intrinsic.json'), 'w') as json_file:
+                    json.dump(intrinsic, json_file)
+                save_intrinsic = False
         end = time.time()
         print(end-start)
         print("Recording start")
         while True:
             frames = device_manager.get_frames(root, save=True)
+
+
+
 
     except KeyboardInterrupt:
         print("The program was interupted by the user. Closing the program...")

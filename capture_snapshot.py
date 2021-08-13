@@ -25,20 +25,20 @@ def capture(root):
     resolution_height = 768  # 720 # pixels
     frame_rate = 30  # fps
 
+    rgb_width = 1920
+    rgb_height = 1080
     dispose_frames_for_stablisation = 30  # frames
     try:
         # Enable the streams from all the intel realsense devices
         L515_rs_config = rs.config()
-        L515_rs_config.enable_stream(rs.stream.depth, L515_resolution_width, L515_resolution_height, rs.format.z16,
-                                     L515_frame_rate)
-        L515_rs_config.enable_stream(rs.stream.infrared, 0, L515_resolution_width, L515_resolution_height, rs.format.y8,
-                                     L515_frame_rate)
-        L515_rs_config.enable_stream(rs.stream.color, 1920, 1080, rs.format.bgr8, frame_rate)
+        L515_rs_config.enable_stream(rs.stream.depth, L515_resolution_width, L515_resolution_height, rs.format.z16, L515_frame_rate)
+        L515_rs_config.enable_stream(rs.stream.infrared, 0, L515_resolution_width, L515_resolution_height, rs.format.y8, L515_frame_rate)
+        L515_rs_config.enable_stream(rs.stream.color, rgb_width, rgb_height, rs.format.bgr8, frame_rate)
 
         rs_config = rs.config()
         rs_config.enable_stream(rs.stream.depth, resolution_width, resolution_height, rs.format.z16, frame_rate)
         rs_config.enable_stream(rs.stream.infrared, 1, resolution_width, resolution_height, rs.format.y8, frame_rate)
-        rs_config.enable_stream(rs.stream.color, 1920, 1080, rs.format.bgr8, frame_rate)
+        rs_config.enable_stream(rs.stream.color, rgb_width, rgb_height, rs.format.bgr8, frame_rate)
 
         # Use the device manager class to enable the devices and get the frames
         device_manager = DeviceManager(rs.context(), rs_config, L515_rs_config)
