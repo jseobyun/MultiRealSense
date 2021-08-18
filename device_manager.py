@@ -52,31 +52,36 @@ def post_process_depth_frame(depth_frame, decimation_magnitude=1.0, spatial_magn
     return filtered_frame
 
 class DeviceManager:
-    def __init__(self, context, D400_pipeline_configuration, L500_pipeline_configuration=rs.config()):
+    def __init__(self, context, first_pipeline_configuration, second_pipeline_configuration):
         assert isinstance(context, type(rs.context()))
-        assert isinstance(D400_pipeline_configuration, type(rs.config()))
-        assert isinstance(L500_pipeline_configuration, type(rs.config()))
+        assert isinstance(first_pipeline_configuration, type(rs.config()))
+        assert isinstance(second_pipeline_configuration, type(rs.config()))
         self._context = context
         self._available_devices = enumerate_connected_devices(context)
         self._enabled_devices = {}  # serial numbers of te enabled devices
-        self.D400_config = D400_pipeline_configuration
-        self.L500_config = L500_pipeline_configuration
+        self.first_config = first_pipeline_configuration
+        self.second_config = second_pipeline_configuration
         self._frame_counter = 0
 
-    def enable_device(self, device_info, enable_ir_emitter):
+    def enable_device(self, idx, device_info, enable_ir_emitter):
         pipeline = rs.pipeline()
 
         device_serial = device_info[0]
         product_line = device_info[1]
 
         if product_line == "L500":
-            self.L500_config.enable_device(device_serial)
-            pipeline_profile = pipeline.start(self.L500_config)
+            if idx == 0:
+                print(self.first_config)
+                self.first_config.enable_device(device_serial)
+                pipeline_profile = pipeline.start(self.first_config)
+            elif idx == 1:
+                print(self.second_config)
+                self.second_config.enable_device(device_serial)
+                pipeline_profile = pipeline.start(self.second_config)
             print("Enable L515 device")
         else:
-            # Enable D400 device
-            self.D400_config.enable_device(device_serial)
-            pipeline_profile = pipeline.start(self.D400_config)
+            raise Exception("Please use RealSense L500 series")
+
 
         # Set the acquisition parameters
         sensor = pipeline_profile.get_device().first_depth_sensor()
@@ -90,8 +95,8 @@ class DeviceManager:
 
     def enable_all_devices(self, enable_ir_emitter=False):
         print(str(len(self._available_devices)) + " devices have been found")
-        for device_info in self._available_devices:
-            self.enable_device(device_info, enable_ir_emitter)
+        for idx, device_info in enumerate(self._available_devices):
+            self.enable_device(idx, device_info, enable_ir_emitter)
 
     def enable_emitter(self, enable_ir_emitter=True):
         for (device_serial, device) in self._enabled_devices.items():
@@ -206,5 +211,5 @@ class DeviceManager:
         return device_extrinsics
 
     def disable_streams(self):
-        self.D400_config.disable_all_streams()
-        self.L500_config.disable_all_streams()
+        self.first_config.disable_all_streams()
+        self.second_config.disable_all_streams()
