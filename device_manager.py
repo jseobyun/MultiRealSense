@@ -113,6 +113,8 @@ class DeviceManager:
         align = rs.align(align_to)
         frames = {}
         while len(frames) < len(self._enabled_devices.items()):
+            img_repos = []
+            depth_repos = []
             for cam_idx, (serial, device) in enumerate(self._enabled_devices.items()):
                 streams = device.pipeline_profile.get_streams()
                 frameset = device.pipeline.poll_for_frames()
@@ -123,7 +125,6 @@ class DeviceManager:
                     for stream in streams:
                         if (rs.stream.infrared == stream.stream_type()):
                             frame = frameset.get_infrared_frame(stream.stream_index())
-                            #key_ = (stream.stream_type(), stream.stream_index())
                             key_ = str(stream.stream_type())
                         else:
                             frame = frameset.first_or_default(stream.stream_type())
@@ -137,11 +138,17 @@ class DeviceManager:
                     rgb = np.asarray(aligned_color.get_data())
                     depth = np.array(aligned_depth.get_data(), dtype=np.float32)*self.depth_scale
                     depth = np.array(depth, np.uint16)
-                    cv2.imshow(serial, rgb)
+                    img_repos.append(rgb)
+                    depth_repos.append(depth)
+
+            if len(img_repos) != len(self._enabled_devices.items()):
+                continue
+            if save:
+                for i in range(len(img_repos)):
+                    cv2.imwrite(os.path.join(root, f'images/view{i}/{self._frame_counter}_img.png'), rgb)
+                    cv2.imwrite(os.path.join(root, f'depths/view{i}/{self._frame_counter}_depth.png'), depth)
+                    cv2.imshow(str(i), rgb)
                     cv2.waitKey(1)
-                    if save:
-                        cv2.imwrite(os.path.join(root, f'images/view{cam_idx}/{self._frame_counter}_img.png'), rgb)
-                        cv2.imwrite(os.path.join(root, f'depths/view{cam_idx}/{self._frame_counter}_depth.png'), depth)
         if not no_count:
 
             self._frame_counter += 1

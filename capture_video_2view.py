@@ -12,6 +12,7 @@ from device_manager import DeviceManager
 def parse_config():
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp_name', default='default')
+    parser.add_argument('--no_save', action='store_true', default=False)
     args = parser.parse_args()
     return args
 
@@ -57,9 +58,7 @@ def capture(root):
         print(end-start)
         print("Recording start")
         while True:
-            frames = device_manager.get_frames(root, save=True)
-
-
+            frames = device_manager.get_frames(root, save=not args.no_save)
 
 
     except KeyboardInterrupt:

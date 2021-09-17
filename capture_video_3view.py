@@ -9,6 +9,7 @@ from view3_manager import View3Manager
 def parse_config():
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp_name', default='test')
+    parser.add_argument('--no_save', action='store_true', default=False)
     args = parser.parse_args()
     return args
 
@@ -45,7 +46,7 @@ def capture(root):
                 save_intrinsic = False
 
         while True:
-            frames = device_manager.get_frames(root, save=True)
+            frames = device_manager.get_frames(root, save=not args.no_save)
 
 
     except KeyboardInterrupt:
